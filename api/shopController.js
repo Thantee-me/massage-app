@@ -1,6 +1,7 @@
 var express = require('express')
 var cors = require('cors')
 const connection = require('../middleware/db_connect');
+require('../globalFunctions'); 
 var app = express()
 app.use(cors())
 app.use(express.json())
@@ -151,8 +152,8 @@ ShopController.products_update = async (req, res, next) => {
 ShopController.staff_create = async (req, res, next) => {
   try {
     connection.query(
-      `INSERT INTO staff (id, shop_id, staff_name, staff_wages, tell, status, create_by) VALUES (NULL, ?, ?, ?, ?, ?, ?)`,
-      [req.body.shop_id, req.body.staff_name, req.body.staff_wages, req.body.tell, req.body.status, req.body.create_by],
+      `INSERT INTO staff (id, shop_id, staff_name, staff_wages, tell, status, create_by, birthday, address) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [req.body.shop_id, req.body.staff_name, req.body.staff_wages, req.body.tell, req.body.status, req.body.create_by, req.body.birthday, req.body.address],
       function (err, results) {
         if (err) {
           return res.status(500).json({ error: err.message });
@@ -187,14 +188,21 @@ ShopController.staff_update = async (req, res, next) => {
 ShopController.staff_get = async (req, res, next) => {
   try {
     connection.query(
-      `SELECT * FROM  staff 
-      WHEREshop_id = ?  AND status = 1`,
-      [req.body.shop_id, req.body.status],
+      `SELECT st.*, sh.shop_name, sa.status_name, sa.status_code 
+      FROM staff st
+      JOIN status_web sa ON sa.id = st.status
+      JOIN shops sh ON sh.id = st.shop_id
+      WHERE st.shop_id = ?`,
+      [req.body.shop_id],
       function (err, results) {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
-        res.json(results);
+        if (results.length !== 0) {
+          res.json({ status: 200, data: results });
+        } else {
+          res.json({ status: 404, message: "User not found!" });
+        }
       }
     );
 
@@ -206,13 +214,17 @@ ShopController.staff_get = async (req, res, next) => {
 ShopController.message_menu_create = async (req, res, next) => {
   try {
     connection.query(
-      `INSERT INTO message_menu (id, shop_id, message_name, message_price, message_staff, message_shop, create_by, message_time_hour, message_time_minute, status) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO message_menu (id, shop_id, message_name, message_price, message_staff, message_shop, create_by,message_time_hour, message_time_minute, status) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [req.body.shop_id, req.body.message_name, req.body.message_price, req.body.message_staff, req.body.message_shop, req.body.create_by, req.body.message_time_hour, req.body.message_time_minute, req.body.status],
       function (err, results) {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
-        res.json(results);
+        if (results.length !== 0) {
+          res.json({ status: 200, data: results });
+        } else {
+          res.json({ status: 404, message: "User not found!" });
+        }
       }
     );
   } catch (err) {
@@ -242,7 +254,11 @@ ShopController.message_menu_update = async (req, res, next) => {
 ShopController.message_menu_get = async (req, res, next) => {
   try {
     connection.query(
-      'SELECT * FROM `message_menu` WHERE shop_id = ? AND status = 1',
+      `SELECT mu.*, sh.shop_name, sa.status_name, sa.status_code 
+      FROM message_menu mu
+      JOIN status_web sa ON sa.id = mu.status
+      JOIN shops sh ON sh.id = mu.shop_id
+      WHERE mu.shop_id = ?`,
       [req.body.shop_id],
       function (err, results) {
         if (err) {
@@ -674,7 +690,6 @@ ShopController.job_massages_update = async (req, res, next) => {
     const job_id = req.body.job_id;
     const shop_id = req.body.shop_id;
     const update_by = req.body.update_by;
-    console.log("staff_id-->", staff_id);
     
     connection.query(
       `UPDATE job_massages 
@@ -815,6 +830,17 @@ ShopController.job_massages_billing = async (req, res, next) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
+ShopController.testgg = async (req, res, next) => {
+  const dataToEncrypt = "ID=342";
+  const encrypted = encryptData(dataToEncrypt);
+  console.log("Encrypted in otherFile.js:", encrypted);
+
+  const decrypted = decryptData(encrypted);
+console.log("Decrypted in otherFile.js:", decrypted);
+
+};
+
 
 
 

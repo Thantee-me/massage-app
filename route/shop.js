@@ -51,5 +51,6 @@ router.post('/job_massages/update', auth, ShopController.job_massages_update);
 router.post('/job_massages/get_timeline', auth, ShopController.job_massages_get_timeline);
 router.post('/job_massages/info', auth, ShopController.job_massages_info);
 router.post('/job_massages/billing', auth, ShopController.job_massages_billing);
+router.post('/test/gg', ShopController.testgg);
 
 module.exports = router; 
